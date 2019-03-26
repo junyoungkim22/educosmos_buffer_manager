@@ -180,10 +180,6 @@ Four eduom_CreateObject(
     /* Error check whether using not supported functionality by EduOM */
     if(ALIGNED_LENGTH(length) > LRGOBJ_THRESHOLD) ERR(eNOTSUPPORTED_EDUOM);
 
-	/*
-	e = BfM_GetTrain((TrainID*)nearObj, (char**)&apage, PAGE_BUF);
-	if(e < 0) ERR(e);
-	*/
 	e = BfM_GetTrain((TrainID*)catObjForFile, (char**)&catPage, PAGE_BUF);
    	if(e < 0) ERR(e); 
 	GET_PTR_TO_CATENTRY_FOR_DATA(catObjForFile, catPage, catEntry);
@@ -262,8 +258,6 @@ Four eduom_CreateObject(
 					e = BfM_SetDirty(&nearPid, PAGE_BUF);
 					if(e < 0) ERRB1(e, &nearPid, PAGE_BUF);
 				}
-				//e = om_RemoveFromAvailSpaceList(catObjForFile, &nearPid, apage);
-				//if(e < 0) ERRB1(e, &nearPid, PAGE_BUF);
 			}
 			else
 			{
@@ -302,12 +296,6 @@ Four eduom_CreateObject(
 		apage->header.unique = 0;
 		apage->header.fid = fid;
 		apage->header.uniqueLimit = 0;
-		/*
-		e = om_GetUnique(&pid, &apage->header.uniqueLimit);
-		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
-		e = om_GetUnique(&pid, &apage->header.unique);
-		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
-		*/
 		e = om_FileMapAddPage(catObjForFile, &nearPid, &pid);
 		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
 		e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
