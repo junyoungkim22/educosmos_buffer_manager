@@ -87,7 +87,31 @@ Four EduOM_PrevObject(
     
     if (prevOID == NULL) ERR(eBADOBJECTID_OM);
 
+	e = BfM_GetTrain((TrainID*)catObjForFile, (char**)&catPage, PAGE_BUF);
+	if(e < 0) ERR(e);
+	GET_PTR_TO_CATENTRY_FOR_DATA(catObjForFile, catPage, catEntry);
+
+	if(curOID == NULL)
+	{
+		MAKE_PAGEID(pid, catEntry->fid.volNo, catEntry->lastPage);
+		e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
+		if(e < 0) ERR(e);
+		if(apage->header.nSlots == 0)
+			return(EOS);
+		i = apage->header.nSlots - 1;
+		offset = apage->slot[-i].offset;
+		obj = &apage->data[offset];
+		MAKE_OBJECTID(*prevOID, pid.volNo, pid.pageNo, i, apage->slot[-i].unique);
+		objHdr = &obj->header;
+		e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
+		if(e < 0) ERR(e);
+	}
+	else
+	{
+	}
     
+	e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
+	if(e < 0) ERR(e);
 
     return(EOS);
     
