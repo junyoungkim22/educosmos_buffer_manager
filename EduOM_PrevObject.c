@@ -97,27 +97,45 @@ Four EduOM_PrevObject(
 		e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
 		if(e < 0) ERR(e);
 		if(apage->header.nSlots == 0)
+		{
+			e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
+			if(e < 0) ERR(e);
+			e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
+			if(e < 0) ERR(e);
 			return(EOS);
+		}
 		i = apage->header.nSlots - 1;
 	}
 	else
 	{
-		MAKE_PAGEID(pid, prevOID->volNo, prevOID->pageNo);
+		MAKE_PAGEID(pid, curOID->volNo, curOID->pageNo);
 		e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
 		if(e < 0) ERR(e);
-		i = prevOID->slotNo;
+		i = curOID->slotNo;
 		if(i == 0)
 		{
 			if(catEntry->firstPage == pid.pageNo)
+			{
+				e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
+				if(e < 0) ERR(e);
+				e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
+				if(e < 0) ERR(e);
 				return(EOS);
+			}
 			pageNo = apage->header.prevPage;
 			e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
 			if(e < 0) ERR(e);
-			MAKE_PAGEID(pid, prevOID->volNo, pageNo);
+			MAKE_PAGEID(pid, curOID->volNo, pageNo);
 			e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
 			if(e < 0) ERR(e);
 			if(apage->header.nSlots == 0)
+			{
+				e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
+				if(e < 0) ERR(e);
+				e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
+				if(e < 0) ERR(e);
 				return(EOS);
+			}
 			i = apage->header.nSlots - 1;
 		}
 		else
@@ -130,8 +148,7 @@ Four EduOM_PrevObject(
 	MAKE_OBJECTID(*prevOID, pid.volNo, pid.pageNo, i, apage->slot[-i].unique);
 	objHdr = &obj->header;
 	e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
-	if(e < 0) ERR(e);
-    
+	if(e < 0) ERR(e); 
 	e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
 	if(e < 0) ERR(e);
 

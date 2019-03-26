@@ -301,10 +301,10 @@ Four eduom_CreateObject(
 		apage->header.unused = 0;
 		apage->header.unique = 0;
 		apage->header.fid = fid;
-		e = om_GetUnique(&pid, &apage->header.unique);
-		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
 		apage->header.uniqueLimit = 0;
 		e = om_GetUnique(&pid, &apage->header.uniqueLimit);
+		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
+		e = om_GetUnique(&pid, &apage->header.unique);
 		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
 		e = om_FileMapAddPage(catObjForFile, &nearPid, &pid);
 		if(e < 0) ERRB1(e, &pid, PAGE_BUF);

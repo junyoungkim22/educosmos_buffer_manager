@@ -91,47 +91,23 @@ Four EduOM_NextObject(
     if (nextOID == NULL) ERR(eBADOBJECTID_OM);
 	
 	e = BfM_GetTrain((TrainID*)catObjForFile, (char**)&catPage, PAGE_BUF);
-
 	if(e < 0) ERR(e);
-
 	GET_PTR_TO_CATENTRY_FOR_DATA(catObjForFile, catPage, catEntry);
-
-	MAKE_PAGEID(pid, catEntry->fid.volNo, catEntry->firstPage);
 
 	if(curOID == NULL)
 	{
+		MAKE_PAGEID(pid, catEntry->fid.volNo, catEntry->firstPage);
 		e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
 		if(e < 0) ERR(e);
 		if(apage->header.nSlots == 0)
 		{
-			if(pid.pageNo == catEntry->lastPage)
-			{
-				e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
-				if(e < 0) ERR(e);
-				e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
-				if(e < 0) ERR(e);
-				return(EOS);
-			}
-			else
-			{
-				pageNo = apage->header.nextPage;
-				e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
-				if(e < 0) ERR(e);
-				pid.pageNo = pageNo;
-			}
-		}
-		MAKE_OBJECTID(*nextOID, pid.volNo, pid.pageNo, 0, apage->slot[0].unique);
-		objHdr = (ObjectHdr*)&apage->data[apage->slot[0].offset];
-		e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
-		if(e < 0) ERR(e);
-	}
-	else
-	{
-		e = BfM_GetTrain((TrainID*)curOID, (char**)&apage, PAGE_BUF);
-		if(e < 0) ERR(e);
-		if(curOID->slotNo == (apage->header.nSlots - 1))
-		{
-			if(curOID->pageNo == catEntry->lastPage)
+			pageNo = apage->header.nextPage;
+			e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
+			if(e < 0) ERR(e);
+			MAKE_PAGEID(pid, catEntry->fid.volNo, pageNo);
+			e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
+			if(e < 0) ERR(e);
+			if(apage->header.nSlots == 0)
 			{
 				e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
 				if(e < 0) ERR(e);
@@ -139,24 +115,52 @@ Four EduOM_NextObject(
 				if(e < 0) ERR(e);
 				return(EOS);
 			}
-			pid.pageNo = apage->header.nextPage;
-			e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
-			if(e < 0) ERR(e);
-			MAKE_OBJECTID(*nextOID, pid.volNo, pid.pageNo, 0, apage->slot[0].unique);
-			objHdr = (ObjectHdr*)&apage->data[apage->slot[0].offset];
+		}
+		i = 0;	
+	}
+	else
+	{
+		MAKE_PAGEID(pid, curOID->volNo, curOID->pageNo);
+		e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
+		if(e < 0) ERR(e);
+		i = curOID->slotNo;
+		if(i == (apage->header.nSlots - 1))
+		{
+			if(curOID->pageNo == catEntry->lastPage)
+			{
+				e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
+				if(e < 0) ERR(e);
+				e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
+				if(e < 0) ERR(e);
+				return(EOS);
+			}
+			pageNo = apage->header.nextPage;
 			e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
 			if(e < 0) ERR(e);
+			MAKE_PAGEID(pid, curOID->volNo, pageNo);
+			e = BfM_GetTrain((TrainID*)&pid, (char**)&apage, PAGE_BUF);
+			if(e < 0) ERR(e);
+			if(apage->header.nSlots == 0)
+			{
+				e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
+				if(e < 0) ERR(e);
+				e = BfM_FreeTrain((TrainID*)curOID, PAGE_BUF);
+				if(e < 0) ERR(e);
+				return(EOS);
+			}
+			i = 0;
 		}
 		else
 		{
-			MAKE_OBJECTID(*nextOID, curOID->volNo, curOID->pageNo, curOID->slotNo + 1, apage->slot[-(curOID->slotNo + 1)].unique);
-			objHdr = (ObjectHdr*)&apage->data[apage->slot[-(curOID->slotNo + 1)].offset];
+			i++;
 		}
-
-		e = BfM_FreeTrain((TrainID*)curOID, PAGE_BUF);
-		if(e < 0) ERR(e);
-		
 	}
+	offset = apage->slot[-i].offset;
+	obj = &apage->data[offset];
+	MAKE_OBJECTID(*nextOID, pid.volNo, pid.pageNo, i, apage->slot[-i].unique);
+	objHdr = &obj->header;
+	e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
+	if(e < 0) ERR(e);
 	e = BfM_FreeTrain((TrainID*)catObjForFile, PAGE_BUF);
 	if(e < 0) ERR(e);
 
