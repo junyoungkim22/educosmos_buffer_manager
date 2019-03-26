@@ -302,10 +302,12 @@ Four eduom_CreateObject(
 		apage->header.unique = 0;
 		apage->header.fid = fid;
 		apage->header.uniqueLimit = 0;
+		/*
 		e = om_GetUnique(&pid, &apage->header.uniqueLimit);
 		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
 		e = om_GetUnique(&pid, &apage->header.unique);
 		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
+		*/
 		e = om_FileMapAddPage(catObjForFile, &nearPid, &pid);
 		if(e < 0) ERRB1(e, &pid, PAGE_BUF);
 		e = BfM_FreeTrain((TrainID*)&pid, PAGE_BUF);
